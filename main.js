@@ -4,28 +4,36 @@ timer_counter = 0;
 timer_check = "";
 drawn_sketch = "";
 answer_holder = "";
-score = 0;  
+score = 0;
 
 random_number= Math.floor((Math.random()*quick_draw_data_set.length));
 console.log(random_number)
 random_value = quick_draw_data_set[random_number]
 console.log(random_value)
 
-document.getElementById('sketchtodraw').innerHTML = random_value
+document.getElementById('sketch').innerHTML = random_value;
 
 function draw(){
+  strokeWeight(10)
+  stroke(0)
+  if(mouseIsPressed){
+    line(pmouseX, pmouseY, mouseX, mouseY);
+  }
   check_sketch()
   if(drawn_sketch == sketch){
     answer_holder = "set";
     score = score + 1;
-    document.getElementById('score').innerHTML += score;
-
+    document.getElementById('score').innerHTML ="Score: " + score; 
   }
+}
+
+function preload(){
+  classifier = ml5.imageClassifier("DoodleNet")
 }
 
 function check_sketch(){
   timer_counter = timer_counter + 1;
-  document.getElementById('timer').innerHTML += timer_counter;
+  document.getElementById('timer').innerHTML = "Time: " +  timer_counter;
   if(timer_counter > 400){
     timer_counter = 0
     timer_check = "completed"
@@ -41,8 +49,32 @@ function setup(){
   canvas = createCanvas(280, 280)
   canvas.center()
   background('white');
+  canvas.mouseOut(classifyCanvas)
 }
 
 function updateCanvas(){
   background('white');
+  random_number= Math.floor((Math.random()*quick_draw_data_set.length));
+  console.log(random_number)
+  random_value = quick_draw_data_set[random_number]
+  console.log(random_value)
+
+  document.getElementById('sketch').innerHTML = random_value;
+}
+
+function classifyCanvas(){
+  classifier.classify(canvas, gotResults)
+}
+
+function gotResults(error, results){
+  if(error){
+    console.log(error)
+  }
+  else{
+    console.log(results);
+    drawn_sketch = results[0].label;
+    confidence = (results[0].confidence).toFixed(3) * 100 ;
+    document.getElementById('userSketch').innerHTML = "Your Sketch: " + drawn_sketch;
+    document.getElementById('confidence').innerHTML = "Confidence: " + confidence + "%";
+  }
 }
